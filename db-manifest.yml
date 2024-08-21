@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-mysql-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-mysql-db
+  template:
+    metadata:
+      name: my-mysql-pod
+      labels:
+        app: my-mysql-db
+    spec:
+      containers:
+        - name: mysql-db
+          image: mysql:latest # mysql
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-volume
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-root
+                  key: password
+          ports:
+            - containerPort: 3306
+          livenessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -h
+                - localhost
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6
+          readinessProbe:
+              exec:
+                command:
+                  - mysqladmin
+                  - ping
+                  - -h
+                  - localhost
+              initialDelaySeconds: 30
+              periodSeconds: 10
+              timeoutSeconds: 5
+              successThreshold: 1
+              failureThreshold: 6
+      volumes:
+        - name: mysql-volume
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-db-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-db
+  template:
+    metadata:
+      name: my-db-pod
+      labels:
+        app: my-db
+    spec:
+      containers:
+        - name: mongo-db
+          image: mongo:latest # mongo
+          args: [ "mongod", "--dbpath","/data/climate" ]
+          livenessProbe:
+            exec:
+              command:
+                - mongo
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6
+          readinessProbe:
+            exec:
+              command:
+                - mongo
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6
+          volumeMounts:
+            - mountPath: /var/lib/mongo
+              name: mongo-volume
+          env:
+            - name: MONGO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-root
+                  key: password
+          ports:
+            - containerPort: 27017
+      volumes:
+        - name: mongo-volume
+          persistentVolumeClaim:
+            claimName: mongo-pvc
+
+
+
