@@ -40,21 +40,36 @@ spec:
             successThreshold: 1
             failureThreshold: 6
           readinessProbe:
-              exec:
-                command:
-                  - mysqladmin
-                  - ping
-                  - -h
-                  - localhost
-              initialDelaySeconds: 30
-              periodSeconds: 10
-              timeoutSeconds: 5
-              successThreshold: 1
-              failureThreshold: 6
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -h
+                - localhost
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6
       volumes:
         - name: mysql-volume
           persistentVolumeClaim:
             claimName: mysql-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-mysql-service
+  labels:
+    app: my-mysql-db-service
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 3306
+      targetPort: 3306
+  selector:
+    app: my-mysql-db
 
 ---
 apiVersion: apps/v1
@@ -72,41 +87,30 @@ spec:
       labels:
         app: my-mongo-db
     spec:
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: mongo-db
           image: mongo:latest # mongo
-          args: [ "mongod", "--dbpath","/volume/mongo-pv/climate" ]
-          livenessProbe:
-            exec:
-              command:
-                - mongo
-                - --eval
-                - "db.adminCommand('ping')"
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 6
-          readinessProbe:
-            exec:
-              command:
-                - mongo
-                - --eval
-                - "db.adminCommand('ping')"
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 6
-          volumeMounts:
-            - mountPath: /var/lib/mongo
-              name: mongo-volume
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          args: [ "mongod", "--dbpath","/volume/mongo-pv" ]
           env:
+            - name: MONGO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-root
+                  key: username
             - name: MONGO_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: mongo-root
                   key: password
+          volumeMounts:
+            - name: mongo-volume
+              mountPath: /volume/mongo-pv
           ports:
             - containerPort: 27017
       volumes:
@@ -115,4 +119,18 @@ spec:
             claimName: mongo-pvc
 
 
-
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-service
+  labels:
+    app: my-mongo-db-service
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+  selector:
+    app: my-mongo-db

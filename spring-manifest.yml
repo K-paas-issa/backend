@@ -7,11 +7,6 @@ spec:
   selector:
     matchLabels:
       app: my-server
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
   template:
     metadata:
       name: my-server-pod
@@ -23,3 +18,20 @@ spec:
           image: contest73-backend.kr.ncr.ntruss.com/contest73-backend:latest
           ports:
             - containerPort: 8080
+          env:
+            - name: MYSQL_HOST
+              value: "default-my-mysql-service-8a55b-26184043-58c7272b97d4.kr.lb.naverncp.com"
+            - name: MONGO_HOST
+              value: "default-mongodb-service-beb1e-26183707-6006858232e4.kr.lb.naverncp.com"
+            - name: MYSQL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-root
+                  key: username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-root
+                  key: password
+      imagePullSecrets:
+        - name: regcred
