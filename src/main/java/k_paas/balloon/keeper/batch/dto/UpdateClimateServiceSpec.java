@@ -4,15 +4,15 @@ import k_paas.balloon.keeper.domain.climate.entity.Climate;
 import k_paas.balloon.keeper.domain.climate.entity.Climate.ClimateData;
 import lombok.Builder;
 
+import java.util.Arrays;
+
 public record UpdateClimateServiceSpec(
-        Integer y,
-        Integer x,
         Integer prespredictHour,
         Integer pressure,
-        String UVector,
-        String VVector,
+        String[][] UVVector,
         Integer pressureValue,
-        Integer predictHour
+        Integer predictHour,
+        Integer uvVectorIndex
 ) {
 
     @Builder
@@ -21,28 +21,23 @@ public record UpdateClimateServiceSpec(
 
     @Override
     public String toString() {
-        return "UpdateClimateSpec{" +
-                "y=" + y +
-                ", x=" + x +
-                ", prespredictHour=" + prespredictHour +
+        return "UpdateClimateServiceSpec{" +
+                "prespredictHour=" + prespredictHour +
                 ", pressure=" + pressure +
-                ", UVector='" + UVector + '\'' +
-                ", VVector='" + VVector + '\'' +
+                ", UVVector=" + Arrays.toString(UVVector) +
                 ", pressureValue=" + pressureValue +
                 ", predictHour=" + predictHour +
+                ", uvVectorIndex=" + uvVectorIndex +
                 '}';
     }
 
     public Climate toEntity(){
         return Climate.builder()
-                .y(this.y)
-                .x(this.x)
                 .prespredictHour(this.prespredictHour)
                 .pressure(this.pressure)
                 .climateData(
                         ClimateData.builder()
-                                .UVector(this.UVector)
-                                .VVector(this.VVector)
+                                .UVVector(this.UVVector)
                                 .pressure(this.pressureValue)
                                 .predictHour(this.predictHour)
                         .build())

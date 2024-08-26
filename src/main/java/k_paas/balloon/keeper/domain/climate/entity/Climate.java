@@ -8,16 +8,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Climate {
     @Id
     private String id;
-    private Integer y;
-    private Integer x;
     private Integer prespredictHour;
     private Integer pressure;
     private ClimateData climateData;
 
     @Builder
-    public Climate(Integer y, Integer x, Integer prespredictHour, Integer pressure, ClimateData climateData) {
-        this.y = y;
-        this.x = x;
+    public Climate(Integer prespredictHour, Integer pressure, ClimateData climateData) {
         this.prespredictHour = prespredictHour;
         this.pressure = pressure;
         this.climateData = climateData;
@@ -25,17 +21,17 @@ public class Climate {
 
 
     public static class ClimateData {
-        private String UVector;
-        private String VVector;
+        private String[][] UVVector;
         private Integer pressure;
         private Integer predictHour;
+        private Integer uvVectorIndex;
 
         @Builder
-        public ClimateData(String UVector, String VVector, Integer pressure, Integer predictHour) {
-            this.UVector = UVector;
-            this.VVector = VVector;
+        public ClimateData(String[][] UVVector, Integer pressure, Integer predictHour, Integer uvVectorIndex) {
+            this.UVVector = UVVector;
             this.pressure = pressure;
             this.predictHour = predictHour;
+            this.uvVectorIndex = uvVectorIndex;
         }
     }
 }

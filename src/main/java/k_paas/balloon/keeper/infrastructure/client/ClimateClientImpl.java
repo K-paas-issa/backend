@@ -26,6 +26,7 @@ public class ClimateClientImpl implements ClimateClient {
         this.restTemplate = restTemplate;
     }
 
+    //TODO: tmfc(api 업데이트 시간에 대한 변수) 추가로직 작성
     public String[][] sendRequestClimateData(String varn, String level, String predictHour) {
         StringBuilder urlBuilder = new StringBuilder("https://apihub.kma.go.kr/api/typ06/cgi-bin/url/nph-um_grib_xy_txt1");
         urlBuilder.append("?" + URLEncoder.encode("group", StandardCharsets.UTF_8) + "=" + URLEncoder.encode("UMKR", StandardCharsets.UTF_8)); /* 모델 구분(한반도 모델 -> 1.5km) */
