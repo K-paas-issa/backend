@@ -20,18 +20,28 @@ spec:
             - containerPort: 8080
           env:
             - name: MYSQL_HOST
-              value: "default-my-mysql-service-8a55b-26184043-58c7272b97d4.kr.lb.naverncp.com"
+              value: "default-my-mysql-service-790b6-26292068-46a4f0920895.kr.lb.naverncp.com"
             - name: MONGO_HOST
-              value: "default-mongodb-service-beb1e-26183707-6006858232e4.kr.lb.naverncp.com"
+              value: "default-mongodb-service-74809-26291546-cee6349096e3.kr.lb.naverncp.com"
             - name: MYSQL_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: mysql-root
+                  name: mysql-secret
                   key: username
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-root
+                  name: mysql-secret
+                  key: password
+            - name: MONGO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: username
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
                   key: password
       imagePullSecrets:
         - name: regcred

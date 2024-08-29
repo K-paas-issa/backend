@@ -1,3 +1,4 @@
+##### MYSQL #####
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,10 +21,15 @@ spec:
             - mountPath: /var/lib/mysql
               name: mysql-volume
           env:
-            - name: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_SECRET_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: mysql-root
+                  name: mysql-secret
+                  key: username
+            - name: MYSQL_SECRET_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
                   key: password
           ports:
             - containerPort: 3306
@@ -57,21 +63,8 @@ spec:
             claimName: mysql-pvc
 
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: my-mysql-service
-  labels:
-    app: my-mysql-db-service
-spec:
-  type: LoadBalancer
-  ports:
-    - port: 3306
-      targetPort: 3306
-  selector:
-    app: my-mysql-db
 
----
+##### MONGO #####
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -83,7 +76,6 @@ spec:
       app: my-mongo-db
   template:
     metadata:
-      name: my-mongo-pod
       labels:
         app: my-mongo-db
     spec:
@@ -91,46 +83,32 @@ spec:
         fsGroup: 1000
       containers:
         - name: mongo-db
-          image: mongo:latest # mongo
+          image: mongo # mongo
           imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-          args: [ "mongod", "--dbpath","/volume/mongo-pv" ]
+          args: [ "mongod", "--config", "/etc/mongod.conf"]
           env:
-            - name: MONGO_ROOT_USER
+            - name: MONGO_SECRET_USER
               valueFrom:
                 secretKeyRef:
-                  name: mongo-root
+                  name: mongo-secret
                   key: username
-            - name: MONGO_ROOT_PASSWORD
+            - name: MONGO_SECRET_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mongo-root
+                  name: mongo-secret
                   key: password
           volumeMounts:
             - name: mongo-volume
-              mountPath: /volume/mongo-pv
+              mountPath: /data/db
+            - name: mongo-config-volume
+              mountPath: /etc/mongod.conf
+              subPath: mongod.conf
           ports:
             - containerPort: 27017
       volumes:
         - name: mongo-volume
           persistentVolumeClaim:
             claimName: mongo-pvc
-
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: mongodb-service
-  labels:
-    app: my-mongo-db-service
-spec:
-  type: LoadBalancer
-  ports:
-    - protocol: TCP
-      port: 27017
-      targetPort: 27017
-  selector:
-    app: my-mongo-db
+        - name: mongo-config-volume
+          configMap:
+            name: mongo-config

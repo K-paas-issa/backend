@@ -1,0 +1,50 @@
+##### MYSQL #####
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-mysql-service
+  labels:
+    app: my-mysql-db-service
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 13006
+      targetPort: 3306
+  selector:
+    app: my-mysql-db
+---
+
+##### MONGODB #######
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-config
+data:
+  mongod.conf: |
+    storage:
+      dbPath: /data/db
+    systemLog:
+      destination: file
+      path: /var/log/mongodb/mongod.log
+      logAppend: true
+    net:
+      port: 27017
+    security:
+      authorization: "enabled"
+# security부분은 맨 처음엔 지우고 팟 띄워야 들어가서 계정 생성할 수 있음. 그 이후 security적고 팟 다시 띄울 것.
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-service
+  labels:
+    app: my-mongo-db-service
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 30017
+      targetPort: 27017
+  selector:
+    app: my-mongo-db
